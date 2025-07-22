@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: Hibernate ORM Complete API Index
+  description: |
+    Master index for all Hibernate ORM API documentation.
+    
+    This index provides links to all individual API documentation files
+    for comprehensive coverage of Hibernate ORM functionality.
+    
+    **Note**: These document Java library APIs, not actual REST endpoints.
+  version: "7.0.0"
+  contact:
+    name: Hibernate Team
+    url: https://hibernate.org
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.hibernate.orm/v7
+    description: Hibernate ORM API (conceptual)
+
+tags:
+  - name: API Index
+    description: Links to all Hibernate API documentation files
+
+paths:
+  /api-docs:
+    get:
+      tags: [API Index]
+      summary: Get API documentation index
+      description: Retrieve index of all available API documentation
+      responses:
+        '200':
+          description: API documentation index
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIIndex'
+
+components:
+  schemas:
+    APIIndex:
+      type: object
+      properties:
+        hibernateVersion:
+          type: string
+          example: "7.0.0"
+        documentation:
+          type: array
+          items:
+            $ref: '#/components/schemas/APIDocumentation'
+
+    APIDocumentation:
+      type: object
+      properties:
+        name:
+          type: string
+        file:
+          type: string
+        description:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+
+  examples:
+    CompleteAPIIndex:
+      value:
+        hibernateVersion: "7.0.0"
+        documentation:
+          - name: "Core Session Management API"
+            file: "hibernate-core-session-api.yaml"
+            description: "SessionFactory, Session, Transaction, and Entity CRUD operations"
+            categories: ["Core", "Session Management", "Transactions", "Entity Operations"]
+          
+          - name: "Query API"
+            file: "hibernate-query-api.yaml"
+            description: "HQL, Criteria, Native SQL queries and execution"
+            categories: ["Queries", "HQL", "Criteria", "SQL", "Parameters"]
+          
+          - name: "Schema Management API"
+            file: "hibernate-schema-api.yaml"
+            description: "Database schema DDL generation, validation, and migration"
+            categories: ["Schema", "DDL", "Migration", "Validation", "Metadata"]
+          
+          - name: "Extended Modules API"
+            file: "hibernate-modules-api.yaml"
+            description: "Envers auditing, Spatial/Vector operations, Caching, Statistics"
+            categories: ["Envers", "Auditing", "Spatial", "Vector", "Caching", "Statistics"]
+          
+          - name: "Tooling API"
+            file: "hibernate-tooling-api.yaml"
+            description: "Metamodel generation, Build plugins, Connection pools, Dev tools"
+            categories: ["Tooling", "Metamodel", "Build Plugins", "Connection Pools", "Development"]
+
+externalDocs:
+  description: Complete API Documentation README
+  url: ./README.md

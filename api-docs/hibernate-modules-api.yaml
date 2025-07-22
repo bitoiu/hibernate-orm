@@ -1,0 +1,810 @@
+openapi: 3.0.3
+info:
+  title: Hibernate Modules API
+  description: |
+    Hibernate ORM Extended Modules APIs including Envers (Auditing), Spatial, 
+    Vector, Caching, and other specialized functionality.
+    
+    This documentation represents the Java Module APIs as OpenAPI specifications 
+    for comprehensive documentation. Covers audit trails, spatial data operations, 
+    vector embeddings, caching, and other specialized Hibernate modules.
+    
+    **Note**: These are Java method APIs, not actual REST endpoints.
+  version: "7.0.0"
+  contact:
+    name: Hibernate Team
+    url: https://hibernate.org
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.hibernate.orm/v7
+    description: Hibernate ORM Modules API (conceptual)
+
+tags:
+  - name: Envers Auditing
+    description: Entity auditing and revision tracking
+  - name: Spatial Operations
+    description: Spatial and GIS data operations
+  - name: Vector Operations
+    description: Vector embeddings and similarity search
+  - name: Cache Management
+    description: Second-level cache operations
+  - name: Statistics
+    description: Runtime statistics and metrics
+
+paths:
+  # Envers Auditing APIs
+  /session/{sessionId}/audit/revisions/{entityType}/{id}:
+    get:
+      tags: [Envers Auditing]
+      summary: Get entity revisions
+      description: Retrieve all audit revisions for a specific entity
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Entity revisions retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionList'
+
+  /session/{sessionId}/audit/revisions/{revisionNumber}:
+    get:
+      tags: [Envers Auditing]
+      summary: Get revision details
+      description: Retrieve details of a specific revision
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: revisionNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Revision details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionInfo'
+
+  /session/{sessionId}/audit/entity/{entityType}/{id}/revision/{revisionNumber}:
+    get:
+      tags: [Envers Auditing]
+      summary: Get entity at revision
+      description: Retrieve the state of an entity at a specific revision
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: revisionNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Entity state at revision retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditedEntity'
+
+  /session/{sessionId}/audit/query:
+    post:
+      tags: [Envers Auditing]
+      summary: Create audit query
+      description: Create a query for audit data
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditQueryRequest'
+      responses:
+        '201':
+          description: Audit query created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditQuery'
+
+  # Spatial Operations APIs
+  /session/{sessionId}/spatial/query:
+    post:
+      tags: [Spatial Operations]
+      summary: Create spatial query
+      description: Create a query with spatial predicates
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpatialQueryRequest'
+      responses:
+        '201':
+          description: Spatial query created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpatialQuery'
+
+  /session/{sessionId}/spatial/distance:
+    post:
+      tags: [Spatial Operations]
+      summary: Calculate distance
+      description: Calculate distance between two geometries
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistanceRequest'
+      responses:
+        '200':
+          description: Distance calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistanceResult'
+
+  /session/{sessionId}/spatial/within:
+    post:
+      tags: [Spatial Operations]
+      summary: Find entities within geometry
+      description: Find entities that are within a specified geometry
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithinQueryRequest'
+      responses:
+        '200':
+          description: Entities within geometry found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpatialQueryResult'
+
+  # Vector Operations APIs
+  /session/{sessionId}/vector/similarity:
+    post:
+      tags: [Vector Operations]
+      summary: Vector similarity search
+      description: Find entities with similar vector embeddings
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorSimilarityRequest'
+      responses:
+        '200':
+          description: Similar vectors found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorSimilarityResult'
+
+  /session/{sessionId}/vector/distance:
+    post:
+      tags: [Vector Operations]
+      summary: Calculate vector distance
+      description: Calculate distance between vector embeddings
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorDistanceRequest'
+      responses:
+        '200':
+          description: Vector distance calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDistanceResult'
+
+  # Cache Management APIs
+  /session-factory/{factoryId}/cache:
+    get:
+      tags: [Cache Management]
+      summary: Get cache manager
+      description: Retrieve the cache manager for the session factory
+      parameters:
+        - name: factoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cache manager retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheManager'
+
+  /cache/{managerId}/region/{regionName}:
+    delete:
+      tags: [Cache Management]
+      summary: Evict cache region
+      description: Evict all entries from a cache region
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: regionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cache region evicted
+
+  /cache/{managerId}/entity/{entityType}:
+    delete:
+      tags: [Cache Management]
+      summary: Evict entity cache
+      description: Evict all cached instances of an entity type
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Entity cache evicted
+
+  /cache/{managerId}/entity/{entityType}/{id}:
+    delete:
+      tags: [Cache Management]
+      summary: Evict specific entity
+      description: Evict a specific entity instance from cache
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Entity instance evicted
+
+  /cache/{managerId}/statistics:
+    get:
+      tags: [Cache Management]
+      summary: Get cache statistics
+      description: Retrieve cache performance statistics
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cache statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheStatistics'
+
+  # Statistics APIs
+  /session-factory/{factoryId}/statistics:
+    get:
+      tags: [Statistics]
+      summary: Get session factory statistics
+      description: Retrieve comprehensive runtime statistics
+      parameters:
+        - name: factoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HibernateStatistics'
+
+  /statistics/{factoryId}/enable:
+    post:
+      tags: [Statistics]
+      summary: Enable statistics collection
+      description: Enable or disable statistics collection
+      parameters:
+        - name: factoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Statistics collection configured
+
+  /statistics/{factoryId}/clear:
+    post:
+      tags: [Statistics]
+      summary: Clear statistics
+      description: Clear all collected statistics
+      parameters:
+        - name: factoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statistics cleared
+
+components:
+  schemas:
+    # Envers Schemas
+    RevisionList:
+      type: object
+      properties:
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionInfo'
+        totalCount:
+          type: integer
+
+    RevisionInfo:
+      type: object
+      properties:
+        revisionNumber:
+          type: integer
+        revisionDate:
+          type: string
+          format: date-time
+        revisionType:
+          $ref: '#/components/schemas/RevisionType'
+        username:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+
+    AuditedEntity:
+      type: object
+      properties:
+        entity:
+          type: object
+        revisionInfo:
+          $ref: '#/components/schemas/RevisionInfo'
+        entityType:
+          type: string
+
+    AuditQueryRequest:
+      type: object
+      required:
+        - entityType
+      properties:
+        entityType:
+          type: string
+        criteria:
+          type: object
+        revisionNumberRestriction:
+          type: object
+        revisionDateRestriction:
+          type: object
+
+    AuditQuery:
+      type: object
+      properties:
+        queryId:
+          type: string
+        entityType:
+          type: string
+        resultCount:
+          type: integer
+
+    RevisionType:
+      type: string
+      enum:
+        - ADD
+        - MOD
+        - DEL
+
+    # Spatial Schemas
+    SpatialQueryRequest:
+      type: object
+      required:
+        - entityType
+        - spatialPredicate
+      properties:
+        entityType:
+          type: string
+        spatialPredicate:
+          $ref: '#/components/schemas/SpatialPredicate'
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+        distance:
+          type: number
+        srid:
+          type: integer
+
+    SpatialQuery:
+      type: object
+      properties:
+        queryId:
+          type: string
+        spatialPredicate:
+          $ref: '#/components/schemas/SpatialPredicate'
+
+    SpatialQueryResult:
+      type: object
+      properties:
+        entities:
+          type: array
+          items:
+            type: object
+        distances:
+          type: array
+          items:
+            type: number
+
+    DistanceRequest:
+      type: object
+      required:
+        - geometry1
+        - geometry2
+      properties:
+        geometry1:
+          $ref: '#/components/schemas/Geometry'
+        geometry2:
+          $ref: '#/components/schemas/Geometry'
+
+    DistanceResult:
+      type: object
+      properties:
+        distance:
+          type: number
+        unit:
+          type: string
+
+    WithinQueryRequest:
+      type: object
+      required:
+        - entityType
+        - geometry
+      properties:
+        entityType:
+          type: string
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+        propertyName:
+          type: string
+
+    SpatialPredicate:
+      type: string
+      enum:
+        - WITHIN
+        - CONTAINS
+        - INTERSECTS
+        - TOUCHES
+        - CROSSES
+        - OVERLAPS
+        - DISJOINT
+        - DWITHIN
+
+    Geometry:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON]
+        coordinates:
+          type: array
+          items:
+            type: number
+        srid:
+          type: integer
+
+    # Vector Schemas
+    VectorSimilarityRequest:
+      type: object
+      required:
+        - entityType
+        - queryVector
+      properties:
+        entityType:
+          type: string
+        queryVector:
+          type: array
+          items:
+            type: number
+        vectorProperty:
+          type: string
+        similarityFunction:
+          $ref: '#/components/schemas/SimilarityFunction'
+        maxResults:
+          type: integer
+        threshold:
+          type: number
+
+    VectorSimilarityResult:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VectorMatch'
+
+    VectorMatch:
+      type: object
+      properties:
+        entity:
+          type: object
+        similarity:
+          type: number
+        distance:
+          type: number
+
+    VectorDistanceRequest:
+      type: object
+      required:
+        - vector1
+        - vector2
+      properties:
+        vector1:
+          type: array
+          items:
+            type: number
+        vector2:
+          type: array
+          items:
+            type: number
+        distanceFunction:
+          $ref: '#/components/schemas/DistanceFunction'
+
+    VectorDistanceResult:
+      type: object
+      properties:
+        distance:
+          type: number
+
+    SimilarityFunction:
+      type: string
+      enum:
+        - COSINE
+        - DOT_PRODUCT
+        - EUCLIDEAN
+        - MANHATTAN
+
+    DistanceFunction:
+      type: string
+      enum:
+        - EUCLIDEAN
+        - MANHATTAN
+        - COSINE
+        - HAMMING
+
+    # Cache Schemas
+    CacheManager:
+      type: object
+      properties:
+        managerId:
+          type: string
+        regions:
+          type: array
+          items:
+            type: string
+        cacheProvider:
+          type: string
+
+    CacheStatistics:
+      type: object
+      properties:
+        hitCount:
+          type: integer
+        missCount:
+          type: integer
+        putCount:
+          type: integer
+        hitRatio:
+          type: number
+        regionStatistics:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/RegionStatistics'
+
+    RegionStatistics:
+      type: object
+      properties:
+        regionName:
+          type: string
+        hitCount:
+          type: integer
+        missCount:
+          type: integer
+        putCount:
+          type: integer
+        elementCountInMemory:
+          type: integer
+        elementCountOnDisk:
+          type: integer
+        sizeInMemory:
+          type: integer
+
+    # Statistics Schemas
+    HibernateStatistics:
+      type: object
+      properties:
+        sessionOpenCount:
+          type: integer
+        sessionCloseCount:
+          type: integer
+        transactionCount:
+          type: integer
+        successfulTransactionCount:
+          type: integer
+        flushCount:
+          type: integer
+        connectCount:
+          type: integer
+        preparedStatementCount:
+          type: integer
+        closeStatementCount:
+          type: integer
+        queryExecutionCount:
+          type: integer
+        queryExecutionMaxTime:
+          type: integer
+        queryExecutionMaxTimeQueryString:
+          type: string
+        queryCacheHitCount:
+          type: integer
+        queryCacheMissCount:
+          type: integer
+        queryCachePutCount:
+          type: integer
+        naturalIdQueryExecutionCount:
+          type: integer
+        naturalIdQueryExecutionMaxTime:
+          type: integer
+        naturalIdCacheHitCount:
+          type: integer
+        naturalIdCacheMissCount:
+          type: integer
+        naturalIdCachePutCount:
+          type: integer
+        updateTimestampsCacheHitCount:
+          type: integer
+        updateTimestampsCacheMissCount:
+          type: integer
+        updateTimestampsCachePutCount:
+          type: integer
+        entityLoadCount:
+          type: integer
+        entityUpdateCount:
+          type: integer
+        entityInsertCount:
+          type: integer
+        entityDeleteCount:
+          type: integer
+        entityFetchCount:
+          type: integer
+        collectionLoadCount:
+          type: integer
+        collectionUpdateCount:
+          type: integer
+        collectionRemoveCount:
+          type: integer
+        collectionRecreateCount:
+          type: integer
+        collectionFetchCount:
+          type: integer
+        secondLevelCacheHitCount:
+          type: integer
+        secondLevelCacheMissCount:
+          type: integer
+        secondLevelCachePutCount:
+          type: integer
+        statisticsEnabled:
+          type: boolean
+        startTime:
+          type: string
+          format: date-time

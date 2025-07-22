@@ -1,0 +1,599 @@
+openapi: 3.0.3
+info:
+  title: Hibernate Query API
+  description: |
+    Hibernate ORM Query APIs for HQL, Criteria Builder, and Native SQL queries.
+    
+    This documentation represents the Java Query APIs as OpenAPI specifications 
+    for comprehensive documentation. Covers HQL queries, Criteria API, Native SQL, 
+    and query execution methods.
+    
+    **Note**: These are Java method APIs, not actual REST endpoints.
+  version: "7.0.0"
+  contact:
+    name: Hibernate Team
+    url: https://hibernate.org
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.hibernate.orm/v7
+    description: Hibernate ORM Query API (conceptual)
+
+tags:
+  - name: HQL Queries
+    description: Hibernate Query Language operations
+  - name: Criteria Queries
+    description: Type-safe Criteria API operations
+  - name: Native Queries
+    description: Native SQL query operations
+  - name: Query Execution
+    description: Query execution and result handling
+  - name: Query Parameters
+    description: Parameter binding operations
+
+paths:
+  /session/{sessionId}/query/hql:
+    post:
+      tags: [HQL Queries]
+      summary: Create HQL query
+      description: Create a Query instance from HQL string
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HQLQueryRequest'
+      responses:
+        '201':
+          description: HQL query created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Query'
+        '400':
+          description: Invalid HQL syntax
+
+  /session/{sessionId}/query/criteria:
+    post:
+      tags: [Criteria Queries]
+      summary: Create criteria query
+      description: Create a Query instance from Criteria object
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriteriaQueryRequest'
+      responses:
+        '201':
+          description: Criteria query created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Query'
+
+  /session/{sessionId}/query/native:
+    post:
+      tags: [Native Queries]
+      summary: Create native SQL query
+      description: Create a NativeQuery instance from SQL string
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NativeQueryRequest'
+      responses:
+        '201':
+          description: Native query created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NativeQuery'
+        '400':
+          description: Invalid SQL syntax
+
+  /session/{sessionId}/query/named/{queryName}:
+    get:
+      tags: [HQL Queries]
+      summary: Get named query
+      description: Retrieve a named query by name
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: queryName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resultClass
+          in: query
+          schema:
+            type: string
+          description: Expected result type class name
+      responses:
+        '200':
+          description: Named query retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Query'
+        '404':
+          description: Named query not found
+
+  /query/{queryId}/parameters/{parameterName}:
+    put:
+      tags: [Query Parameters]
+      summary: Set named parameter
+      description: Bind a value to a named parameter
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parameterName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParameterValue'
+      responses:
+        '200':
+          description: Parameter set successfully
+        '400':
+          description: Invalid parameter name or value
+
+  /query/{queryId}/parameters/{position}:
+    put:
+      tags: [Query Parameters]
+      summary: Set positional parameter
+      description: Bind a value to a positional parameter
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: position
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParameterValue'
+      responses:
+        '200':
+          description: Parameter set successfully
+        '400':
+          description: Invalid parameter position or value
+
+  /query/{queryId}/execute/list:
+    get:
+      tags: [Query Execution]
+      summary: Execute query and get list
+      description: Execute the query and return results as a list
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          schema:
+            type: integer
+          description: Maximum number of results to return
+        - name: firstResult
+          in: query
+          schema:
+            type: integer
+          description: Position of first result to retrieve
+      responses:
+        '200':
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResultList'
+        '400':
+          description: Query execution failed
+
+  /query/{queryId}/execute/single:
+    get:
+      tags: [Query Execution]
+      summary: Execute query and get single result
+      description: Execute the query and return a single result
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Single result returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResult'
+        '404':
+          description: No result found
+        '409':
+          description: Multiple results found (NonUniqueResultException)
+
+  /query/{queryId}/execute/unique:
+    get:
+      tags: [Query Execution]
+      summary: Execute query and get unique result
+      description: Execute the query expecting exactly one result or null
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unique result returned (may be null)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResult'
+        '409':
+          description: Multiple results found
+
+  /query/{queryId}/execute/stream:
+    get:
+      tags: [Query Execution]
+      summary: Execute query as stream
+      description: Execute the query and return results as a stream
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Query stream created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryStream'
+
+  /query/{queryId}/execute/update:
+    post:
+      tags: [Query Execution]
+      summary: Execute update/delete query
+      description: Execute a bulk update or delete query
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Update executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResult'
+
+  /query/{queryId}/scroll:
+    get:
+      tags: [Query Execution]
+      summary: Execute query with scrollable results
+      description: Execute the query and return scrollable results
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: scrollMode
+          in: query
+          schema:
+            $ref: '#/components/schemas/ScrollMode'
+      responses:
+        '200':
+          description: Scrollable results created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrollableResults'
+
+  /query/{queryId}/configuration:
+    put:
+      tags: [Query Execution]
+      summary: Configure query options
+      description: Set various query execution options
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryConfiguration'
+      responses:
+        '200':
+          description: Query configured successfully
+
+components:
+  schemas:
+    HQLQueryRequest:
+      type: object
+      required:
+        - hql
+      properties:
+        hql:
+          type: string
+          description: HQL query string
+          example: "SELECT p FROM Person p WHERE p.age > :minAge"
+        resultClass:
+          type: string
+          description: Expected result type class name
+          example: "com.example.Person"
+
+    CriteriaQueryRequest:
+      type: object
+      required:
+        - criteriaDefinition
+      properties:
+        criteriaDefinition:
+          type: object
+          description: Serialized criteria query definition
+        resultClass:
+          type: string
+          description: Expected result type class name
+
+    NativeQueryRequest:
+      type: object
+      required:
+        - sql
+      properties:
+        sql:
+          type: string
+          description: Native SQL query string
+          example: "SELECT * FROM persons WHERE age > ?"
+        resultClass:
+          type: string
+          description: Expected result type class name
+        resultSetMapping:
+          type: string
+          description: Name of the result set mapping
+
+    Query:
+      type: object
+      properties:
+        queryId:
+          type: string
+        queryString:
+          type: string
+        resultType:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueryParameter'
+        maxResults:
+          type: integer
+        firstResult:
+          type: integer
+        timeout:
+          type: integer
+        fetchSize:
+          type: integer
+        flushMode:
+          $ref: '#/components/schemas/FlushModeType'
+        cacheMode:
+          $ref: '#/components/schemas/CacheMode'
+        cacheable:
+          type: boolean
+        cacheRegion:
+          type: string
+        readOnly:
+          type: boolean
+
+    NativeQuery:
+      allOf:
+        - $ref: '#/components/schemas/Query'
+        - type: object
+          properties:
+            addScalar:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScalarReturn'
+            addEntity:
+              type: array
+              items:
+                $ref: '#/components/schemas/EntityReturn'
+
+    QueryParameter:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+        type:
+          type: string
+        value:
+          type: object
+
+    ParameterValue:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: object
+          description: Parameter value (can be any type)
+        temporalType:
+          $ref: '#/components/schemas/TemporalType'
+        hibernateType:
+          type: string
+          description: Hibernate type name
+
+    QueryResultList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+        totalCount:
+          type: integer
+        hasMore:
+          type: boolean
+
+    QueryResult:
+      type: object
+      properties:
+        result:
+          type: object
+          description: Single query result
+
+    QueryStream:
+      type: object
+      properties:
+        streamId:
+          type: string
+        hasNext:
+          type: boolean
+
+    UpdateResult:
+      type: object
+      properties:
+        affectedRows:
+          type: integer
+
+    ScrollableResults:
+      type: object
+      properties:
+        scrollId:
+          type: string
+        current:
+          type: object
+        rowNumber:
+          type: integer
+
+    QueryConfiguration:
+      type: object
+      properties:
+        maxResults:
+          type: integer
+        firstResult:
+          type: integer
+        timeout:
+          type: integer
+        fetchSize:
+          type: integer
+        flushMode:
+          $ref: '#/components/schemas/FlushModeType'
+        cacheMode:
+          $ref: '#/components/schemas/CacheMode'
+        cacheable:
+          type: boolean
+        cacheRegion:
+          type: string
+        readOnly:
+          type: boolean
+        lockMode:
+          $ref: '#/components/schemas/LockModeType'
+
+    ScalarReturn:
+      type: object
+      properties:
+        columnAlias:
+          type: string
+        hibernateType:
+          type: string
+
+    EntityReturn:
+      type: object
+      properties:
+        entityClass:
+          type: string
+        tableAlias:
+          type: string
+
+    ScrollMode:
+      type: string
+      enum:
+        - FORWARD_ONLY
+        - SCROLL_INSENSITIVE
+        - SCROLL_SENSITIVE
+
+    TemporalType:
+      type: string
+      enum:
+        - DATE
+        - TIME
+        - TIMESTAMP
+
+    FlushModeType:
+      type: string
+      enum:
+        - AUTO
+        - COMMIT
+        - MANUAL
+
+    CacheMode:
+      type: string
+      enum:
+        - NORMAL
+        - IGNORE
+        - GET
+        - PUT
+        - REFRESH
+
+    LockModeType:
+      type: string
+      enum:
+        - NONE
+        - READ
+        - WRITE
+        - OPTIMISTIC
+        - OPTIMISTIC_FORCE_INCREMENT
+        - PESSIMISTIC_READ
+        - PESSIMISTIC_WRITE
+        - PESSIMISTIC_FORCE_INCREMENT
