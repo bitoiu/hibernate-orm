@@ -1,0 +1,789 @@
+openapi: 3.0.3
+info:
+  title: Hibernate Tooling API
+  description: |
+    Hibernate ORM Tooling APIs including metamodel generation, build tool plugins, 
+    connection pool integrations, and development tools.
+    
+    This documentation represents the Java Tooling APIs as OpenAPI specifications 
+    for comprehensive documentation. Covers annotation processing, build plugins, 
+    connection pools, and development utilities.
+    
+    **Note**: These are Java method APIs, not actual REST endpoints.
+  version: "7.0.0"
+  contact:
+    name: Hibernate Team
+    url: https://hibernate.org
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.hibernate.orm/v7
+    description: Hibernate ORM Tooling API (conceptual)
+
+tags:
+  - name: Metamodel Generator
+    description: Annotation processor for static metamodel generation
+  - name: Build Plugins
+    description: Gradle and Maven plugin operations
+  - name: Connection Pools
+    description: Connection pool management and configuration
+  - name: Development Tools
+    description: Development and debugging utilities
+
+paths:
+  # Metamodel Generator APIs
+  /processor/metamodel/generate:
+    post:
+      tags: [Metamodel Generator]
+      summary: Generate metamodel classes
+      description: Generate static metamodel classes from entity annotations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetamodelGenerationRequest'
+      responses:
+        '200':
+          description: Metamodel classes generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetamodelGenerationResult'
+        '400':
+          description: Generation failed due to invalid annotations
+
+  /processor/metamodel/validate:
+    post:
+      tags: [Metamodel Generator]
+      summary: Validate entity annotations
+      description: Validate entity class annotations for correctness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationValidationRequest'
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /processor/repository/generate:
+    post:
+      tags: [Metamodel Generator]
+      summary: Generate repository implementations
+      description: Generate repository implementation classes for Jakarta Data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepositoryGenerationRequest'
+      responses:
+        '200':
+          description: Repository implementations generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepositoryGenerationResult'
+
+  # Build Plugin APIs
+  /gradle/enhance:
+    post:
+      tags: [Build Plugins]
+      summary: Enhance entity bytecode
+      description: Perform bytecode enhancement on entity classes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BytecodeEnhancementRequest'
+      responses:
+        '200':
+          description: Bytecode enhancement completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhancementResult'
+
+  /gradle/schema/generate:
+    post:
+      tags: [Build Plugins]
+      summary: Generate schema DDL
+      description: Generate database schema DDL scripts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaDDLRequest'
+      responses:
+        '200':
+          description: Schema DDL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DDLGenerationResult'
+
+  /maven/hbm2ddl:
+    post:
+      tags: [Build Plugins]
+      summary: Execute HBM2DDL
+      description: Execute schema generation or validation via Maven plugin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HBM2DDLRequest'
+      responses:
+        '200':
+          description: HBM2DDL execution completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HBM2DDLResult'
+
+  /ant/schemaexport:
+    post:
+      tags: [Build Plugins]
+      summary: Export schema via Ant
+      description: Execute schema export using Ant task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaExportRequest'
+      responses:
+        '200':
+          description: Schema export completed
+
+  # Connection Pool APIs
+  /connection-pool/hikaricp/configure:
+    post:
+      tags: [Connection Pools]
+      summary: Configure HikariCP
+      description: Configure HikariCP connection pool settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HikariCPConfiguration'
+      responses:
+        '200':
+          description: HikariCP configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPoolInfo'
+
+  /connection-pool/c3p0/configure:
+    post:
+      tags: [Connection Pools]
+      summary: Configure C3P0
+      description: Configure C3P0 connection pool settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/C3P0Configuration'
+      responses:
+        '200':
+          description: C3P0 configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPoolInfo'
+
+  /connection-pool/agroal/configure:
+    post:
+      tags: [Connection Pools]
+      summary: Configure Agroal
+      description: Configure Agroal connection pool settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgroalConfiguration'
+      responses:
+        '200':
+          description: Agroal configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPoolInfo'
+
+  /connection-pool/{poolId}/statistics:
+    get:
+      tags: [Connection Pools]
+      summary: Get connection pool statistics
+      description: Retrieve connection pool performance statistics
+      parameters:
+        - name: poolId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Connection pool statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPoolStatistics'
+
+  # Development Tools APIs
+  /dev-tools/sql-logging/enable:
+    post:
+      tags: [Development Tools]
+      summary: Enable SQL logging
+      description: Enable or configure SQL statement logging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SQLLoggingConfiguration'
+      responses:
+        '200':
+          description: SQL logging configured
+
+  /dev-tools/statistics/enable:
+    post:
+      tags: [Development Tools]
+      summary: Enable statistics collection
+      description: Enable detailed statistics collection for debugging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatisticsConfiguration'
+      responses:
+        '200':
+          description: Statistics collection enabled
+
+  /dev-tools/jfr/enable:
+    post:
+      tags: [Development Tools]
+      summary: Enable JFR events
+      description: Enable Java Flight Recorder events for Hibernate operations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JFRConfiguration'
+      responses:
+        '200':
+          description: JFR events enabled
+
+  /dev-tools/micrometer/configure:
+    post:
+      tags: [Development Tools]
+      summary: Configure Micrometer metrics
+      description: Configure Micrometer metrics collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicrometerConfiguration'
+      responses:
+        '200':
+          description: Micrometer metrics configured
+
+components:
+  schemas:
+    # Metamodel Generator Schemas
+    MetamodelGenerationRequest:
+      type: object
+      required:
+        - entityClasses
+        - outputDirectory
+      properties:
+        entityClasses:
+          type: array
+          items:
+            type: string
+          description: Fully qualified names of entity classes
+        outputDirectory:
+          type: string
+          description: Target directory for generated classes
+        generateJakartaData:
+          type: boolean
+          default: false
+        generateTypeSafeQueries:
+          type: boolean
+          default: true
+        packagePrefix:
+          type: string
+
+    MetamodelGenerationResult:
+      type: object
+      properties:
+        generatedClasses:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedClass'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessingError'
+        processingTime:
+          type: integer
+          description: Processing time in milliseconds
+
+    GeneratedClass:
+      type: object
+      properties:
+        className:
+          type: string
+        filePath:
+          type: string
+        entityClass:
+          type: string
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetamodelAttribute'
+
+    MetamodelAttribute:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        attributeType:
+          type: string
+          enum: [SINGULAR, PLURAL, EMBEDDED]
+
+    AnnotationValidationRequest:
+      type: object
+      required:
+        - classesToValidate
+      properties:
+        classesToValidate:
+          type: array
+          items:
+            type: string
+        strictValidation:
+          type: boolean
+          default: false
+
+    RepositoryGenerationRequest:
+      type: object
+      required:
+        - repositoryInterfaces
+        - outputDirectory
+      properties:
+        repositoryInterfaces:
+          type: array
+          items:
+            type: string
+        outputDirectory:
+          type: string
+        implementationSuffix:
+          type: string
+          default: "Impl"
+
+    RepositoryGenerationResult:
+      type: object
+      properties:
+        generatedRepositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedRepository'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessingError'
+
+    GeneratedRepository:
+      type: object
+      properties:
+        interfaceName:
+          type: string
+        implementationName:
+          type: string
+        entityType:
+          type: string
+        methods:
+          type: array
+          items:
+            type: string
+
+    ProcessingError:
+      type: object
+      properties:
+        message:
+          type: string
+        className:
+          type: string
+        lineNumber:
+          type: integer
+        kind:
+          type: string
+          enum: [ERROR, WARNING, NOTE]
+
+    ValidationResult:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessingError'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessingError'
+
+    # Build Plugin Schemas
+    BytecodeEnhancementRequest:
+      type: object
+      required:
+        - classesDirectory
+      properties:
+        classesDirectory:
+          type: string
+        enableLazyInitialization:
+          type: boolean
+          default: true
+        enableDirtyTracking:
+          type: boolean
+          default: true
+        enableAssociationManagement:
+          type: boolean
+          default: false
+        enableFieldAccessOptimization:
+          type: boolean
+          default: true
+
+    EnhancementResult:
+      type: object
+      properties:
+        enhancedClasses:
+          type: array
+          items:
+            type: string
+        skippedClasses:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+
+    SchemaDDLRequest:
+      type: object
+      required:
+        - action
+        - outputFile
+      properties:
+        action:
+          type: string
+          enum: [CREATE, DROP, UPDATE, VALIDATE]
+        outputFile:
+          type: string
+        persistenceUnitName:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+
+    DDLGenerationResult:
+      type: object
+      properties:
+        outputFile:
+          type: string
+        statementCount:
+          type: integer
+        success:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+
+    HBM2DDLRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [CREATE, DROP, UPDATE, VALIDATE]
+        outputFile:
+          type: string
+        configurationFile:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+
+    HBM2DDLResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        executedStatements:
+          type: integer
+        outputFiles:
+          type: array
+          items:
+            type: string
+
+    SchemaExportRequest:
+      type: object
+      required:
+        - configFile
+      properties:
+        configFile:
+          type: string
+        outputFile:
+          type: string
+        drop:
+          type: boolean
+          default: false
+        create:
+          type: boolean
+          default: true
+        quiet:
+          type: boolean
+          default: false
+
+    # Connection Pool Schemas
+    HikariCPConfiguration:
+      type: object
+      required:
+        - jdbcUrl
+      properties:
+        jdbcUrl:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        driverClassName:
+          type: string
+        maximumPoolSize:
+          type: integer
+          default: 10
+        minimumIdle:
+          type: integer
+          default: 10
+        connectionTimeout:
+          type: integer
+          default: 30000
+        idleTimeout:
+          type: integer
+          default: 600000
+        maxLifetime:
+          type: integer
+          default: 1800000
+        leakDetectionThreshold:
+          type: integer
+          default: 0
+
+    C3P0Configuration:
+      type: object
+      required:
+        - jdbcUrl
+      properties:
+        jdbcUrl:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+        driverClass:
+          type: string
+        minPoolSize:
+          type: integer
+          default: 3
+        maxPoolSize:
+          type: integer
+          default: 15
+        initialPoolSize:
+          type: integer
+          default: 3
+        acquireIncrement:
+          type: integer
+          default: 3
+        maxIdleTime:
+          type: integer
+          default: 0
+        testConnectionOnCheckout:
+          type: boolean
+          default: false
+
+    AgroalConfiguration:
+      type: object
+      required:
+        - jdbcUrl
+      properties:
+        jdbcUrl:
+          type: string
+        principal:
+          type: string
+        credential:
+          type: string
+        driverClassName:
+          type: string
+        minSize:
+          type: integer
+          default: 0
+        maxSize:
+          type: integer
+          default: 10
+        initialSize:
+          type: integer
+          default: 0
+        acquisitionTimeout:
+          type: integer
+          default: 5000
+        leakTimeout:
+          type: integer
+          default: 0
+        validationTimeout:
+          type: integer
+          default: 5000
+
+    ConnectionPoolInfo:
+      type: object
+      properties:
+        poolId:
+          type: string
+        poolType:
+          type: string
+          enum: [HIKARICP, C3P0, AGROAL]
+        isConfigured:
+          type: boolean
+        activeConnections:
+          type: integer
+        idleConnections:
+          type: integer
+        totalConnections:
+          type: integer
+
+    ConnectionPoolStatistics:
+      type: object
+      properties:
+        poolId:
+          type: string
+        activeConnections:
+          type: integer
+        idleConnections:
+          type: integer
+        totalConnections:
+          type: integer
+        pendingThreads:
+          type: integer
+        connectionRequests:
+          type: integer
+        connectionAcquisitionTime:
+          type: number
+        connectionUsageTime:
+          type: number
+        leakedConnections:
+          type: integer
+
+    # Development Tools Schemas
+    SQLLoggingConfiguration:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: true
+        logLevel:
+          type: string
+          enum: [TRACE, DEBUG, INFO, WARN, ERROR]
+          default: DEBUG
+        logStatements:
+          type: boolean
+          default: true
+        logSlowQueries:
+          type: boolean
+          default: false
+        slowQueryThreshold:
+          type: integer
+          default: 2000
+        formatSql:
+          type: boolean
+          default: true
+        logParameters:
+          type: boolean
+          default: true
+
+    StatisticsConfiguration:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: true
+        generateStatistics:
+          type: boolean
+          default: true
+        logSummaryOnSessionClose:
+          type: boolean
+          default: false
+
+    JFRConfiguration:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: true
+        recordSessions:
+          type: boolean
+          default: true
+        recordTransactions:
+          type: boolean
+          default: true
+        recordQueries:
+          type: boolean
+          default: true
+        recordCaching:
+          type: boolean
+          default: true
+
+    MicrometerConfiguration:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: true
+        meterRegistry:
+          type: string
+        recordSessions:
+          type: boolean
+          default: true
+        recordTransactions:
+          type: boolean
+          default: true
+        recordQueries:
+          type: boolean
+          default: true
+        recordCaching:
+          type: boolean
+          default: true
+        recordConnectionPool:
+          type: boolean
+          default: true

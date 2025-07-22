@@ -1,0 +1,655 @@
+openapi: 3.0.3
+info:
+  title: Hibernate Schema Management API
+  description: |
+    Hibernate ORM Schema Management APIs for DDL generation, validation, and schema evolution.
+    
+    This documentation represents the Java Schema Management APIs as OpenAPI specifications 
+    for comprehensive documentation. Covers database schema creation, validation, 
+    updating, and migration operations.
+    
+    **Note**: These are Java method APIs, not actual REST endpoints.
+  version: "7.0.0"
+  contact:
+    name: Hibernate Team
+    url: https://hibernate.org
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.hibernate.orm/v7
+    description: Hibernate ORM Schema API (conceptual)
+
+tags:
+  - name: Schema Manager
+    description: Core schema management operations
+  - name: DDL Generation
+    description: Database schema DDL generation
+  - name: Schema Validation
+    description: Schema validation operations
+  - name: Schema Migration
+    description: Schema migration and evolution
+  - name: Metadata Extraction
+    description: Database metadata extraction
+
+paths:
+  /session-factory/{factoryId}/schema-manager:
+    get:
+      tags: [Schema Manager]
+      summary: Get schema manager
+      description: Retrieve the SchemaManager for the SessionFactory
+      parameters:
+        - name: factoryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schema manager retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaManager'
+
+  /schema-manager/{managerId}/create:
+    post:
+      tags: [Schema Manager]
+      summary: Create database schema
+      description: Create the database schema (tables, indexes, constraints)
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaCreateOptions'
+      responses:
+        '200':
+          description: Schema created successfully
+        '400':
+          description: Schema creation failed
+
+  /schema-manager/{managerId}/drop:
+    post:
+      tags: [Schema Manager]
+      summary: Drop database schema
+      description: Drop the database schema (tables, indexes, constraints)
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaDropOptions'
+      responses:
+        '200':
+          description: Schema dropped successfully
+        '400':
+          description: Schema drop failed
+
+  /schema-manager/{managerId}/migrate:
+    post:
+      tags: [Schema Migration]
+      summary: Migrate database schema
+      description: Update existing schema to match current mappings
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaMigrationOptions'
+      responses:
+        '200':
+          description: Schema migrated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationResult'
+        '400':
+          description: Schema migration failed
+
+  /schema-manager/{managerId}/validate:
+    post:
+      tags: [Schema Validation]
+      summary: Validate database schema
+      description: Validate that the database schema matches the mappings
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schema validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+        '400':
+          description: Schema validation failed
+
+  /schema-manager/{managerId}/truncate:
+    post:
+      tags: [Schema Manager]
+      summary: Truncate schema data
+      description: Remove all data from mapped tables
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TruncateOptions'
+      responses:
+        '200':
+          description: Schema data truncated successfully
+
+  /schema-manager/{managerId}/ddl/create:
+    get:
+      tags: [DDL Generation]
+      summary: Generate CREATE DDL
+      description: Generate DDL statements for creating the schema
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [SQL, SCRIPT]
+            default: SQL
+      responses:
+        '200':
+          description: CREATE DDL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DDLStatements'
+
+  /schema-manager/{managerId}/ddl/drop:
+    get:
+      tags: [DDL Generation]
+      summary: Generate DROP DDL
+      description: Generate DDL statements for dropping the schema
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [SQL, SCRIPT]
+            default: SQL
+      responses:
+        '200':
+          description: DROP DDL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DDLStatements'
+
+  /schema-manager/{managerId}/ddl/update:
+    get:
+      tags: [DDL Generation]
+      summary: Generate UPDATE DDL
+      description: Generate DDL statements for updating the schema
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [SQL, SCRIPT]
+            default: SQL
+      responses:
+        '200':
+          description: UPDATE DDL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DDLStatements'
+
+  /schema-manager/{managerId}/metadata/extract:
+    get:
+      tags: [Metadata Extraction]
+      summary: Extract database metadata
+      description: Extract metadata information from the database
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeSequences
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: includeTables
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: includeIndexes
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Database metadata extracted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseMetadata'
+
+  /schema-manager/{managerId}/metadata/tables:
+    get:
+      tags: [Metadata Extraction]
+      summary: Get table metadata
+      description: Extract metadata for all mapped tables
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Table metadata retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableMetadata'
+
+  /schema-manager/{managerId}/metadata/sequences:
+    get:
+      tags: [Metadata Extraction]
+      summary: Get sequence metadata
+      description: Extract metadata for all sequences
+      parameters:
+        - name: managerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sequence metadata retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceMetadata'
+
+components:
+  schemas:
+    SchemaManager:
+      type: object
+      properties:
+        managerId:
+          type: string
+        databaseDialect:
+          type: string
+        supportedActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaAction'
+
+    SchemaCreateOptions:
+      type: object
+      properties:
+        createTables:
+          type: boolean
+          default: true
+        createSequences:
+          type: boolean
+          default: true
+        createIndexes:
+          type: boolean
+          default: true
+        createConstraints:
+          type: boolean
+          default: true
+        haltOnError:
+          type: boolean
+          default: true
+        scriptTargets:
+          type: array
+          items:
+            type: string
+
+    SchemaDropOptions:
+      type: object
+      properties:
+        dropTables:
+          type: boolean
+          default: true
+        dropSequences:
+          type: boolean
+          default: true
+        dropConstraints:
+          type: boolean
+          default: true
+        haltOnError:
+          type: boolean
+          default: false
+        scriptTargets:
+          type: array
+          items:
+            type: string
+
+    SchemaMigrationOptions:
+      type: object
+      properties:
+        createMissingTables:
+          type: boolean
+          default: true
+        alterExistingTables:
+          type: boolean
+          default: true
+        createMissingColumns:
+          type: boolean
+          default: true
+        dropUnusedColumns:
+          type: boolean
+          default: false
+        createMissingIndexes:
+          type: boolean
+          default: true
+        createMissingConstraints:
+          type: boolean
+          default: true
+        haltOnError:
+          type: boolean
+          default: true
+
+    TruncateOptions:
+      type: object
+      properties:
+        truncateTables:
+          type: array
+          items:
+            type: string
+        cascadeDelete:
+          type: boolean
+          default: false
+        resetSequences:
+          type: boolean
+          default: true
+
+    DDLStatements:
+      type: object
+      properties:
+        statements:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          enum: [SQL, SCRIPT]
+        lineCount:
+          type: integer
+
+    ValidationResult:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+
+    ValidationError:
+      type: object
+      properties:
+        errorType:
+          type: string
+          enum: [MISSING_TABLE, MISSING_COLUMN, TYPE_MISMATCH, MISSING_INDEX, MISSING_CONSTRAINT]
+        tableName:
+          type: string
+        columnName:
+          type: string
+        expectedType:
+          type: string
+        actualType:
+          type: string
+        message:
+          type: string
+
+    ValidationWarning:
+      type: object
+      properties:
+        warningType:
+          type: string
+        tableName:
+          type: string
+        message:
+          type: string
+
+    MigrationResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        executedStatements:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigrationError'
+        tablesCreated:
+          type: integer
+        tablesModified:
+          type: integer
+        indexesCreated:
+          type: integer
+        constraintsCreated:
+          type: integer
+
+    MigrationError:
+      type: object
+      properties:
+        statement:
+          type: string
+        errorMessage:
+          type: string
+        sqlState:
+          type: string
+        errorCode:
+          type: integer
+
+    DatabaseMetadata:
+      type: object
+      properties:
+        databaseProductName:
+          type: string
+        databaseProductVersion:
+          type: string
+        driverName:
+          type: string
+        driverVersion:
+          type: string
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableInfo'
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceInfo'
+
+    TableMetadata:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableInfo'
+
+    SequenceMetadata:
+      type: object
+      properties:
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceInfo'
+
+    TableInfo:
+      type: object
+      properties:
+        tableName:
+          type: string
+        catalogName:
+          type: string
+        schemaName:
+          type: string
+        tableType:
+          type: string
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnInfo'
+        primaryKey:
+          $ref: '#/components/schemas/PrimaryKeyInfo'
+        foreignKeys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForeignKeyInfo'
+        indexes:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndexInfo'
+
+    ColumnInfo:
+      type: object
+      properties:
+        columnName:
+          type: string
+        dataType:
+          type: string
+        typeName:
+          type: string
+        columnSize:
+          type: integer
+        decimalDigits:
+          type: integer
+        nullable:
+          type: boolean
+        defaultValue:
+          type: string
+        autoIncrement:
+          type: boolean
+
+    PrimaryKeyInfo:
+      type: object
+      properties:
+        keyName:
+          type: string
+        columns:
+          type: array
+          items:
+            type: string
+
+    ForeignKeyInfo:
+      type: object
+      properties:
+        keyName:
+          type: string
+        columns:
+          type: array
+          items:
+            type: string
+        referencedTableName:
+          type: string
+        referencedColumns:
+          type: array
+          items:
+            type: string
+        updateRule:
+          type: string
+        deleteRule:
+          type: string
+
+    IndexInfo:
+      type: object
+      properties:
+        indexName:
+          type: string
+        unique:
+          type: boolean
+        columns:
+          type: array
+          items:
+            type: string
+        ascending:
+          type: array
+          items:
+            type: boolean
+
+    SequenceInfo:
+      type: object
+      properties:
+        sequenceName:
+          type: string
+        catalogName:
+          type: string
+        schemaName:
+          type: string
+        startValue:
+          type: integer
+        incrementBy:
+          type: integer
+        minValue:
+          type: integer
+        maxValue:
+          type: integer
+        cycle:
+          type: boolean
+
+    SchemaAction:
+      type: string
+      enum:
+        - NONE
+        - CREATE
+        - CREATE_ONLY
+        - CREATE_DROP
+        - DROP
+        - UPDATE
+        - VALIDATE
